@@ -1,0 +1,28 @@
+{
+    "advanced_booking_discount": "20",
+    "base_price": "500",
+    "business_factor": "2.4",
+    "economy_factor": "1",
+    "efficiency": "0.80",
+    "extended_cost_factor": "1.5",
+    "first_class_factor": "3",
+    "fuel_cost": "6",
+    "holiday_factor": "40",
+    "late_booking": "30",
+    "long_cost_factor": "1.8",
+    "luggage_surcharge": "40",
+    "narrow_cost_factor": "1",
+    "premium_economy_factor": "1.7",
+    "roundtrip_discount": "20",
+    "special_offers": [
+        {
+            "name": "Student",
+            "value": "15"
+        }
+    ],
+    "stop_discount": "20",
+    "student_discount": "15",
+    "tourist_surcharge": "40",
+    "ultra_cost_factor": "3",
+    "weekend_surcharge": "20"
+}

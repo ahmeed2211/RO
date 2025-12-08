@@ -1,0 +1,1 @@
+FUEL_COST_Km = 2.5
