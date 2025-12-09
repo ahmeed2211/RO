@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1000</width>
+    <height>700</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>FlyCute - Login</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QStackedWidget" name="stackedWidget">
+      <!-- Page 0: Role Selection / Login -->
+      <widget class="QWidget" name="page_login">
+       <property name="styleSheet">
+        <string notr="true">QWidget { background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0 #FFF8F0, stop:1 #FFF0FF); }
+QPushButton{ border-radius:10px; padding:10px; font-weight:600; }
+QPushButton#btnAirline{ background:#FFD1DC; }
+QPushButton#btnCustomer{ background:#D1F7FF; }
+QLabel#titleLabel{ font-size:28px; font-weight:700; color:#333333; }</string>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_login">
+        <item>
+         <layout class="QVBoxLayout" name="leftColumn">
+          <item>
+           <widget class="QLabel" name="titleLabel">
+            <property name="text">
+             <string>Welcome to FlyCute ✈️</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="subtitleLabel">
+            <property name="text">
+             <string>Choose how you'd like to continue — as an airline partner or a lovely customer.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="roleButtons">
+            <item>
+             <widget class="QPushButton" name="btnAirline">
+              <property name="text">
+               <string>Connect as Airline</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnCustomer">
+              <property name="text">
+               <string>Connect as Customer</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <spacer name="spacerLogin2">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QLabel" name="hintLabel">
+            <property name="text">
+             <string>Tip: You can switch dashboards anytime with the top-left logo.</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="rightColumn">
+          <item>
+           <widget class="QFrame" name="cutePanel">
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>360</width>
+              <height>360</height>
+             </size>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_cute">
+             <item>
+              <widget class="QLabel" name="cuteImage">
+               <property name="text">
+                <string>🦄</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>72</pointsize>
+                </font>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="cuteSlogan">
+               <property name="text">
+                <string>Flights with a smile ✨</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <!-- Page 1: Airline Dashboard -->
+      <widget class="QWidget" name="page_airline">
+       <property name="styleSheet">
+        <string notr="true">QWidget { background: #FFFDF6; }
+QGroupBox { border:2px solid #FFE4E1; border-radius:10px; margin-top:6px; }
+QLabel#airTitle{ font-size:20px; font-weight:700; }
+</string>
+       </property>
+       <layout class="QVBoxLayout" name="air_main_layout">
+        <item>
+         <layout class="QHBoxLayout" name="air_top">
+          <item>
+           <widget class="QLabel" name="airLogo">
+            <property name="text">
+             <string>✈️ FlyCute - Airline Dashboard</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignVCenter|Qt::AlignLeft</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="airFuelPrice">
+            <property name="text">
+             <string>Jet A Spot: -- USD / barrel</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="air_middle">
+          <item>
+           <widget class="QGroupBox" name="groupFlights">
+            <property name="title">
+             <string>Scheduled Flights</string>
+            </property>
+            <layout class="QVBoxLayout" name="flightsLayout">
+             <item>
+              <widget class="QTableWidget" name="tableFlights">
+               <property name="columnCount">
+                <number>5</number>
+               </property>
+               <property name="rowCount">
+                <number>6</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupKPIs">
+            <property name="title">
+             <string>KPIs</string>
+            </property>
+            <layout class="QVBoxLayout" name="kpisLayout">
+             <item>
+              <widget class="QLabel" name="lblRevenue">
+               <property name="text">
+                <string>Revenue (today): $--</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="lblFuelUsage">
+               <property name="text">
+                <string>Fuel used (L): --</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnOptimize">
+               <property name="text">
+                <string>Run Optimization</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupNotes">
+          <property name="title">
+           <string>Notes and Alerts</string>
+          </property>
+          <layout class="QVBoxLayout" name="notesLayout">
+           <item>
+            <widget class="QTextEdit" name="txtAlerts">
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <!-- Page 2: Customer Dashboard -->
+      <widget class="QWidget" name="page_customer">
+       <property name="styleSheet">
+        <string notr="true">QWidget { background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0 #F6FFFD, stop:1 #FFF7F8);}
+QLineEdit, QComboBox { padding:8px; border-radius:8px; }
+QPushButton#searchBtn{ background:#FFF1B8; border-radius:10px; padding:10px; }
+</string>
+       </property>
+       <layout class="QVBoxLayout" name="cust_main">
+        <item>
+         <widget class="QLabel" name="custTitle">
+          <property name="text">
+           <string>Customer Dashboard - Find Your Happy Flight</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="searchRow">
+          <item>
+           <widget class="QLineEdit" name="leFrom">
+            <property name="placeholderText">
+             <string>From</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="leTo">
+            <property name="placeholderText">
+             <string>To</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDateEdit" name="dateDepart">
+            <property name="calendarPopup">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="searchBtn">
+            <property name="text">
+             <string>Search Flights</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QTableWidget" name="tableResults">
+          <property name="columnCount">
+           <number>6</number>
+          </property>
+          <property name="rowCount">
+           <number>0</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="bookingRow">
+          <item>
+           <widget class="QGroupBox" name="groupPassenger">
+            <property name="title">
+             <string>Passenger</string>
+            </property>
+            <layout class="QFormLayout" name="formPassenger">
+             <item row="0" column="0">
+              <widget class="QLineEdit" name="leName"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLineEdit" name="lePassport"/>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupPayment">
+            <property name="title">
+             <string>Payment</string>
+            </property>
+            <layout class="QVBoxLayout" name="payLayout">
+             <item>
+              <widget class="QPushButton" name="btnPayNow">
+               <property name="text">
+                <string>Pay and Book</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1000</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
