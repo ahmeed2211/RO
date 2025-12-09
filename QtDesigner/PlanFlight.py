@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import json
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -16,16 +15,11 @@ from Service.stops_estimation import choose_aircraft, estimate_stops
 from constants.Airline_Specific_Constants.Fuel_Cost import FUEL_COST_Km
 
 
-# ----------------------------------------------------------
-# HELPERS
-# ----------------------------------------------------------
-
 def get_isocode(country):
     return IsoCountry.get(country)
 
 
 def load_settings():
-    """Load settings from JSON file"""
     if os.path.exists("settings.json"):
         try:
             with open("settings.json", "r") as f:
@@ -36,18 +30,100 @@ def load_settings():
     return {}
 
 
-# ----------------------------------------------------------
-# UI
-# ----------------------------------------------------------
+class FlightCalculationThread(QtCore.QThread):
+    """QThread to handle flight calculations without freezing UI"""
+    calculation_finished = QtCore.pyqtSignal(dict)
+    calculation_error = QtCore.pyqtSignal(str)
+
+    def __init__(self, from_country, to_country, departure_date, return_date, fuel_cost_per_km):
+        super().__init__()
+        self.from_country = from_country
+        self.to_country = to_country
+        self.departure_date = departure_date
+        self.return_date = return_date
+        self.fuel_cost_per_km = fuel_cost_per_km
+        self.running = True
+
+    def run(self):
+        try:
+            if not self.running:
+                return
+
+            # Calculate distance and aircraft
+            result = choose_aircraft(self.from_country, self.to_country)
+
+            if result is None:
+                self.calculation_error.emit("No aircraft found for this route.")
+                return
+
+            distance, airplane = result
+
+            if not self.running:
+                return
+
+            # Calculate number of stops
+            stops = estimate_stops(self.from_country, self.to_country)
+
+            if not self.running:
+                return
+
+            # Calculate fuel cost
+            fuel_cost = distance * self.fuel_cost_per_km * airplane["cost_factor"]
+
+            if not self.running:
+                return
+
+            # Check holidays
+            try:
+                holidays_info = exist_holidays(self.from_country, self.departure_date, self.return_date)
+            except Exception as e:
+                holidays_info = f"Error: {str(e)}"
+
+            if not self.running:
+                return
+
+            # Check tourism classification
+            try:
+                tourism_class = classify_tourism(self.to_country)
+            except Exception as e:
+                tourism_class = f"Error: {str(e)}"
+
+            if not self.running:
+                return
+
+            # Prepare result dictionary
+            result_data = {
+                'distance': distance,
+                'airplane': airplane,
+                'stops': stops,
+                'fuel_cost': fuel_cost,
+                'holidays': holidays_info,
+                'tourism': tourism_class,
+                'from_country': self.from_country,
+                'to_country': self.to_country
+            }
+
+            self.calculation_finished.emit(result_data)
+
+        except Exception as e:
+            if self.running:
+                self.calculation_error.emit(f"Error calculating flight details: {str(e)}")
+
+    def stop(self):
+        self.running = False
+        self.quit()
+        self.wait(1000)
+
 
 class Ui_FlightPlanningWindow(object):
 
     def __init__(self):
         super().__init__()
         self.main_window_reference = None  # Will store reference to main window
+        self.calculation_thread = None
+        self.calculation_in_progress = False
 
     def set_main_window_reference(self, main_window_ui):
-        """Set reference to main window UI to trigger animations"""
         self.main_window_reference = main_window_ui
 
     def setupUi(self, MainWindow):
@@ -408,6 +484,19 @@ class Ui_FlightPlanningWindow(object):
         self.save_button.clicked.connect(self.saveFlight)
         self.calculations_layout.addWidget(self.save_button, 0, QtCore.Qt.AlignCenter)
 
+        # Progress indicator
+        self.progress_label = QtWidgets.QLabel("")
+        self.progress_label.setStyleSheet("""
+            QLabel {
+                font-size: 16px;
+                color: #1e40af;
+                font-style: italic;
+                padding: 5px;
+            }
+        """)
+        self.progress_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.calculations_layout.addWidget(self.progress_label)
+
         # Add stretch at the end
         main_layout.addStretch()
 
@@ -422,6 +511,7 @@ class Ui_FlightPlanningWindow(object):
         self.from_country = None
         self.to_country = None
         self.current_flight_data = None
+        self.calculation_in_progress = False
 
         # Initialize synchronization
         self.sync_calendars()
@@ -442,7 +532,6 @@ class Ui_FlightPlanningWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def sync_calendars(self):
-        """Initialize synchronization between calendars and datetime editors"""
         current_time = QtCore.QTime(12, 0)  # Default to noon
 
         # Set departure to current date
@@ -520,6 +609,12 @@ class Ui_FlightPlanningWindow(object):
             self.from_country = from_country
             self.to_country = to_country
 
+            # Stop any ongoing calculation
+            if self.calculation_thread and self.calculation_thread.isRunning():
+                self.calculation_thread.stop()
+                self.calculation_thread.wait(500)
+                self.calculation_in_progress = False
+
             # Only proceed if both countries are selected
             if from_country and to_country:
                 if from_country == to_country:
@@ -531,11 +626,8 @@ class Ui_FlightPlanningWindow(object):
                 # Clear error
                 self.Time_Edit_Error.setText("")
 
-                # Keep UI responsive
-                QtWidgets.QApplication.processEvents()
-
-                # Calculate and show flight details
-                self.showflightdetails()
+                # Start calculation in separate thread
+                self.start_calculation_thread()
 
         except Exception as e:
             print(f"Error in on_route_changed: {e}")
@@ -544,75 +636,74 @@ class Ui_FlightPlanningWindow(object):
             self.group_calculations.setVisible(False)
             self.save_button.setEnabled(False)
 
-    def showflightdetails(self):
+    def start_calculation_thread(self):
+        """Start flight calculation in a separate thread"""
         try:
-            print(f"Calculating flight from {self.from_country} to {self.to_country}")
+            # Get dates for calculation
+            departure_date = self.datetime_departure.date().toPyDate()
+            return_date = self.datetime_return.date().toPyDate()
+            fuel_cost_per_km = float(self.settings.get("fuel_cost", 0.0))
 
-            # Show calculations panel with "Calculating..." placeholders
+            # Show calculations panel with loading indicators
             self.group_calculations.setVisible(True)
+            self.progress_label.setText("Calculating flight details...")
 
             for key in self.vals:
                 self.vals[key].setText("Calculating...")
 
-            # Keep UI responsive
-            QtWidgets.QApplication.processEvents()
+            self.save_button.setEnabled(False)
+            self.calculation_in_progress = True
 
-            # Calculate distance and aircraft
-            result = choose_aircraft(self.from_country, self.to_country)
+            # Create and start calculation thread
+            self.calculation_thread = FlightCalculationThread(
+                self.from_country,
+                self.to_country,
+                departure_date,
+                return_date,
+                fuel_cost_per_km
+            )
 
-            if result is None:
-                self.Time_Edit_Error.setText("No aircraft found for this route.")
-                self.group_calculations.setVisible(False)
-                self.save_button.setEnabled(False)
-                return
+            # Connect thread signals
+            self.calculation_thread.calculation_finished.connect(self.on_calculation_finished)
+            self.calculation_thread.calculation_error.connect(self.on_calculation_error)
+            self.calculation_thread.finished.connect(self.on_thread_finished)
 
-            distance, airplane = result
+            # Start the thread
+            self.calculation_thread.start()
 
+        except Exception as e:
+            print(f"Error starting calculation thread: {e}")
+            traceback.print_exc()
+            self.Time_Edit_Error.setText(f"Error: {str(e)}")
+            self.group_calculations.setVisible(False)
+            self.save_button.setEnabled(False)
+
+    def on_calculation_finished(self, result_data):
+        """Handle successful calculation results"""
+        try:
             # Update UI with results
-            self.vals["Distance:"].setText(f"{distance:.2f} km")
-            self.vals["Airplane:"].setText(airplane["name"])
-            self.vals["Capacity:"].setText(str(airplane["capacity"]))
-
-            # Calculate number of stops
-            stops = estimate_stops(self.from_country, self.to_country)
-            self.vals["Number of Stops:"].setText(str(stops))
-
-            # Calculate fuel cost
-            fuel_cost_per_km = float(self.settings.get("fuel_cost", 0.0))
-            fuel_cost = distance * fuel_cost_per_km * airplane["cost_factor"]
-            self.vals["Fuel Cost:"].setText(f"${fuel_cost:.2f}")
-
-            # Get dates for holiday check
-            departure_date = self.datetime_departure.date().toPyDate()
-            return_date = self.datetime_return.date().toPyDate()
-
-            # Check holidays
-            try:
-                holidays_info = exist_holidays(self.from_country, departure_date, return_date)
-                self.vals["Holidays:"].setText(str(holidays_info))
-            except Exception as e:
-                print(f"Error checking holidays: {e}")
-                self.vals["Holidays:"].setText("Error checking holidays")
-
-            # Check tourism classification
-            try:
-                tourism_class = classify_tourism(self.to_country)
-                self.vals["Tourist Destination:"].setText(str(tourism_class))
-            except Exception as e:
-                print(f"Error checking tourism: {e}")
-                self.vals["Tourist Destination:"].setText("Error checking tourism")
+            self.vals["Distance:"].setText(f"{result_data['distance']:.2f} km")
+            self.vals["Airplane:"].setText(result_data['airplane']['name'])
+            self.vals["Capacity:"].setText(str(result_data['airplane']['capacity']))
+            self.vals["Number of Stops:"].setText(str(result_data['stops']))
+            self.vals["Fuel Cost:"].setText(f"${result_data['fuel_cost']:.2f}")
+            self.vals["Holidays:"].setText(str(result_data['holidays']))
+            self.vals["Tourist Destination:"].setText(str(result_data['tourism']))
 
             # Store flight data for saving
             self.current_flight_data = {
-                'distance': distance,
-                'airplane': airplane,
-                'stops': stops,
-                'fuel_cost': fuel_cost,
-                'departure_date': departure_date,
-                'return_date': return_date,
-                'from_country': self.from_country,
-                'to_country': self.to_country
+                'distance': result_data['distance'],
+                'airplane': result_data['airplane'],
+                'stops': result_data['stops'],
+                'fuel_cost': result_data['fuel_cost'],
+                'departure_date': self.datetime_departure.date().toPyDate(),
+                'return_date': self.datetime_return.date().toPyDate(),
+                'from_country': result_data['from_country'],
+                'to_country': result_data['to_country']
             }
+
+            # Update progress label
+            self.progress_label.setText("Calculation complete!")
 
             # Enable save button
             self.save_button.setEnabled(True)
@@ -620,11 +711,25 @@ class Ui_FlightPlanningWindow(object):
             print("Flight details calculated successfully")
 
         except Exception as e:
-            print(f"Error in showflightdetails: {e}")
+            print(f"Error updating UI with results: {e}")
             traceback.print_exc()
-            self.Time_Edit_Error.setText(f"Error calculating flight details: {str(e)}")
+            self.Time_Edit_Error.setText(f"Error displaying results: {str(e)}")
             self.group_calculations.setVisible(False)
             self.save_button.setEnabled(False)
+
+    def on_calculation_error(self, error_message):
+        """Handle calculation errors"""
+        print(f"Calculation error: {error_message}")
+        self.Time_Edit_Error.setText(error_message)
+        self.group_calculations.setVisible(False)
+        self.save_button.setEnabled(False)
+        self.progress_label.setText("")
+
+    def on_thread_finished(self):
+        """Clean up after thread finishes"""
+        self.calculation_in_progress = False
+        if hasattr(self, 'calculation_thread'):
+            self.calculation_thread.deleteLater()
 
     def saveFlight(self):
         try:
@@ -723,6 +828,7 @@ class Ui_FlightPlanningWindow(object):
             )
         except Exception as e:
             print(f"Error opening ScheduleFlight: {e}")
+
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Flight Planning"))

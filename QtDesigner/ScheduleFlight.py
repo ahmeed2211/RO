@@ -1,17 +1,14 @@
-# -*- coding: utf-8 -*-
 from PyQt5 import QtCore, QtGui, QtWidgets
 import os
 import json
 from datetime import datetime
 
-# Import Flight model
 from Model.Flight import Flight
 from Model.SpecialOffer import SpecialOffer
 from Model.Ticket import Ticket
 
 
 def load_settings():
-    """Load settings from JSON file"""
     if os.path.exists("settings.json"):
         try:
             with open("settings.json", "r") as f:
@@ -32,24 +29,20 @@ def addFlight(flight):
 
 
 def getOffers():
-    """Extract special offers from settings"""
     settings = load_settings()
     offers = []
 
-    # Check if special_offers exists in settings
     if "special_offers" in settings and settings["special_offers"]:
         for offer in settings["special_offers"]:
             # Create a user-friendly display text
             offer_name = offer.get("name", "Unknown Offer")
             offer_value = offer.get("value", "0")
 
-            # Handle different value formats (with or without %)
             if "%" in str(offer_value):
                 display_text = f"{offer_name} ({offer_value})"
             else:
                 display_text = f"{offer_name} ({offer_value}%)"
 
-            # Create ID from name
             offer_id = offer_name.lower().replace(" ", "_")
 
             offers.append((display_text, offer_id))
@@ -86,7 +79,6 @@ class Ui_Form(object):
         main_layout.setContentsMargins(30, 20, 30, 30)
         main_layout.setSpacing(25)
 
-        # WELCOME LABEL
         self.welcome_label = QtWidgets.QLabel("Welcome to SkyHigh Airlines")
         self.welcome_label.setStyleSheet("""
             QLabel {
@@ -1158,7 +1150,6 @@ class Ui_Form(object):
                         """)
                         select_btn.setText("Select")
 
-            # Highlight selected button
             button.setStyleSheet("""
                 QPushButton {
                     font-size: 14px;
@@ -1189,7 +1180,6 @@ class Ui_Form(object):
         self.button_book_flight.setVisible(False)
 
     def on_book_flight_clicked(self):
-        """Handle book flight button click"""
         if not self.selected_flight:
             return
 

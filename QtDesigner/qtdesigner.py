@@ -36,13 +36,7 @@ class MyWindow(QMainWindow):
         self.btnAirline.clicked.connect(self.show_airline_dashboard)
         self.btnCustomer.clicked.connect(self.show_customer_dashboard)
 
-        # Load airlines into a ListWidget (if you want one)
-        # NOTE: Your .ui doesn't currently have a ListWidget for airlines.
-        # You can create one in Qt Designer and name it `airlineListWidget`
-        # self.load_airlines()
 
-    # -----------------------------
-    # Dashboard switching
     # -----------------------------
     def show_customer_dashboard(self):
         self.stackedWidget.setCurrentWidget(self.page_customer)
@@ -64,10 +58,6 @@ class MyWindow(QMainWindow):
             item = QListWidgetItem(icon, f"{name}  |  Eff: {data['efficiency']}")
             self.airlineListWidget.addItem(item)
 
-
-# -----------------------------
-# Run App
-# -----------------------------
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = MyWindow()

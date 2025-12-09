@@ -7,10 +7,6 @@ import os
 from QtDesigner.Airline_Settings import MainWindow as Settings
 
 
-# ----------------------------------------------------------
-# CLICKABLE / ANIMATED PLANE
-# ----------------------------------------------------------
-
 class AirplaneItem(QtWidgets.QLabel):
     clicked = QtCore.pyqtSignal()
 
@@ -20,7 +16,7 @@ class AirplaneItem(QtWidgets.QLabel):
         self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
 
         self.setPixmap(QtGui.QPixmap(
-            "C:/GL3/Sem1/RO/ready_take_off-removebg.png"
+            "images/ready_take_off-removebg.png"
         ))
         self.setScaledContents(True)
 
@@ -33,7 +29,7 @@ class AirplaneItem(QtWidgets.QLabel):
 
         # New properties for takeoff animation
         self.is_flying = False
-        self.original_pixmap = QtGui.QPixmap("C:/GL3/Sem1/RO/ready_take_off-removebg.png")
+        self.original_pixmap = QtGui.QPixmap("images/ready_take_off-removebg.png")
         self.takeoff_anim_group = None
 
     def enterEvent(self, e):
@@ -53,10 +49,6 @@ class AirplaneItem(QtWidgets.QLabel):
         e.accept()
         super().mousePressEvent(e)
 
-    # ----------------------------------------------------------
-    # NEW METHODS FOR TAKEOFF ANIMATION
-    # ----------------------------------------------------------
-
     def triggerTakeoff(self):
         """Public method to trigger plane animation"""
         print("Triggering plane takeoff...")
@@ -65,7 +57,6 @@ class AirplaneItem(QtWidgets.QLabel):
         else:
             print("ERROR: Plane or startTakeoff method not found!")
     def startTakeoff(self):
-        """Method 1: Start the takeoff animation with rotation to 45° and move to top center"""
         if self.is_flying:
             return
 
@@ -74,7 +65,6 @@ class AirplaneItem(QtWidgets.QLabel):
         # Disable hover effect during flight
         self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
 
-        # Calculate target position (top center of parent)
         parent_center_x = self.parent().width() // 2 - self.width() // 2
         target_pos = QtCore.QPoint(parent_center_x, -self.height())
 
@@ -107,7 +97,6 @@ class AirplaneItem(QtWidgets.QLabel):
         self.takeoff_anim_group.start()
 
     def rotateBackToZero(self):
-        """Method 2: Rotate back to 0° once at top center"""
         # Create rotation back animation
         rotation_back_anim = QtCore.QVariantAnimation()
         rotation_back_anim.setDuration(1000)
@@ -125,23 +114,17 @@ class AirplaneItem(QtWidgets.QLabel):
         rotation_back_anim.start()
 
     def applyRotation(self, angle):
-        """Apply rotation transformation to the plane image"""
         pixmap = self.original_pixmap
         transform = QtGui.QTransform().rotate(angle)
         rotated_pixmap = pixmap.transformed(transform, QtCore.Qt.SmoothTransformation)
         self.setPixmap(rotated_pixmap)
 
     def onTakeoffComplete(self):
-        """Called when takeoff animation is completely finished"""
         self.is_flying = False
         # Re-enable hover effect
         self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         print("Takeoff animation complete!")
 
-
-# ----------------------------------------------------------
-# MAIN WINDOW
-# ----------------------------------------------------------
 
 class Ui_MainWindow(object):
 
@@ -157,13 +140,13 @@ class Ui_MainWindow(object):
         self.background.setGeometry(0, 0, 1001, 650)
         self.background.setScaledContents(True)
         self.background.setPixmap(
-            QtGui.QPixmap("C:/GL3/Sem1/RO/sea.jpg")
+            QtGui.QPixmap("images/sea.jpg")
         )
 
         # CLIFF
         self.cliff = QtWidgets.QLabel(self.central)
         self.cliff.setPixmap(
-            QtGui.QPixmap("C:/GL3/Sem1/RO/cliff-removebg-.png")
+            QtGui.QPixmap("images/cliff-removebg-.png")
         )
         self.cliff.setScaledContents(True)
         self.cliff.resize(1500, 900)
@@ -202,10 +185,6 @@ class Ui_MainWindow(object):
         self.background.resize(self.central.size())
         self.updatePositions()
 
-
-# ----------------------------------------------------------
-# RUN
-# ----------------------------------------------------------
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
