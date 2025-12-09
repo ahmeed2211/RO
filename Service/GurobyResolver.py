@@ -73,9 +73,7 @@ def dynamic_ticket_price(ticket: Ticket):
     airline = flight.airline
     aircraft = flight.aircraft
 
-    # -----------------------------------------
-    # DECISION VARIABLES
-    # -----------------------------------------
+
     # Main decision variable: Ticket price
     price = m.addVar(name="ticket_price", lb=0, vtype=GRB.CONTINUOUS)
 
@@ -122,8 +120,7 @@ def dynamic_ticket_price(ticket: Ticket):
 
     aircraft_cost = aircraft_cost_factor * FUEL_COST_Km * flight.distance
 
-    # Dynamic factors calculation
-    # -----------------------------
+
     # 1. Load factor from sold seats
     if hasattr(flight, 'sold_seats') and aircraft_capacity > 0:
         load_factor = flight.sold_seats / aircraft_capacity
@@ -162,9 +159,7 @@ def dynamic_ticket_price(ticket: Ticket):
     else:
         flight_stops = 0
 
-    # -----------------------------
-    # SPECIAL OFFERS HANDLING
-    # -----------------------------
+
     special_discount_total = 0
 
     # Check if ticket has any special offers applied
@@ -204,9 +199,6 @@ def dynamic_ticket_price(ticket: Ticket):
     # Tourist surcharge (if destination is tourist hotspot)
     tourist_surcharge_val = tourist_surcharge if is_tourist_destination else 0
 
-    # -----------------------------
-    # DYNAMIC DEMAND FACTOR CALCULATION
-    # -----------------------------
     # Demand factor is influenced by multiple real factors:
     # 1. Base demand: 1.0
     # 2. Load factor influence: +0.5 when fully loaded, +0 when empty
@@ -284,9 +276,6 @@ def dynamic_ticket_price(ticket: Ticket):
     )
     m.setObjective(objective, GRB.MAXIMIZE)
 
-    # -----------------------------
-    # SOLVE AND RETURN
-    # -----------------------------
     m.optimize()
 
     if m.status == GRB.OPTIMAL:
